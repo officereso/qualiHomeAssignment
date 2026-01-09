@@ -20,9 +20,19 @@ resource "aws_network_interface" "interface" {
 	}
 }
 
+resource "tls_private_key" "private_key" {
+	algorithm = "RSA"
+	rsa_bits = 4096
+}
+
+resource "aws_key_pair" "key_pair" {
+	public_key = tls_private_key.private_key.public_key_pem
+}
+
 resource "aws_instance" "instance" {
 	ami = var.ami
 	instance_type = var.instance_type
+	key_name = aws_key_pair.key_pair.key_name
 
 	tags = {
 		name = var.name
@@ -32,4 +42,6 @@ resource "aws_instance" "instance" {
 		device_index         = 0
 		network_interface_id = aws_network_interface.interface.id
 	}
+
+	associate_public_ip_address = var.associate_public_ip_address
 }

@@ -28,9 +28,17 @@ variable "subnet_id" {
 
 variable "private_ips" {
 	type = set(string)
+	nullable = false
 }
 
 variable "interface_name" {
 	default = null
 	type = string
+	nullable = true
+}
+
+variable "associate_public_ip_address" {
+	default = false
+	type = bool
+	nullable = false
 }

@@ -1,0 +1,12 @@
+- name: "Install Nginx onto target Ubuntu machine proxy all traffic to {dst-url}"
+  hosts: all
+  tasks:
+    - name: Install Nginx reverse proxy
+      ansible.builtin.apt:
+        name: nginx
+        state: latest
+    - name: Create proxy site
+      copy:
+        dest: "/etc/var/nginx/sites-enabled/site.conf"
+        content: |
+          server { listen 80; location / { proxy_pass {{ url }}; }}
