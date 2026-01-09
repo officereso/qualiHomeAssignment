@@ -46,7 +46,7 @@
     - name: Enable Simple Python HTTP Server
       become: true
       ansible.builtin.systemd_service:
-        name: pyhon_simple_server.service
+        name: python_simple_server.service
         enabled: true
     - name: Make sure Simple Python HTTP Server is running
       become: true
