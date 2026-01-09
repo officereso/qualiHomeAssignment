@@ -40,13 +40,16 @@
           [Install]
           WantedBy=multi-user.target
     - name: Reload systemd daemon
+      become: true
       ansible.builtin.systemd_service:
         daemon_reload: true
     - name: Enable Simple Python HTTP Server
+      become: true
       ansible.builtin.systemd_service:
         name: pyhon_simple_server.service
         enabled: true
     - name: Make sure Simple Python HTTP Server is running
+      become: true
       ansible.builtin.systemd_service:
         name: python_simple_server.service
         state: started
