@@ -22,7 +22,7 @@
     - name: Create systemd service file
       become: true
       copy:
-        dest: /etc/systemd/systemd/python_simple_server.service
+        dest: /etc/systemd/system/python_simple_server.service
         mode: '0644'
         content: |
           [Unit]
