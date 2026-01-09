@@ -1,6 +1,7 @@
 variable "region" {
 	default = "us-east-2"
 	type = string
+	nullable = false
 }
 
 variable "ami" {
@@ -11,11 +12,13 @@ variable "ami" {
 variable "instance_type" {
 	default = "t2.micro"
 	type = string
+	nullable = false
 }
 
 variable "name" {
 	default = null
 	type = string
+	nullable = true
 }
 
 variable "subnet_id" {
