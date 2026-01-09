@@ -31,14 +31,13 @@ variable "private_ips" {
 	nullable = false
 }
 
-variable "interface_name" {
-	default = null
-	type = string
-	nullable = true
-}
-
 variable "vpc_id" {
 	default = false
+	type = string
+	nullable = false
+}
+
+variable "key_name" {
 	type = string
 	nullable = false
 }

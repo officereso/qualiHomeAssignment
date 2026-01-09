@@ -1,0 +1,46 @@
+- name: "Install Nginx onto target Ubuntu machine proxy all traffic to {dst-url}"
+  hosts: all
+  connection: ssh
+  gather_facts: false
+
+  vars:
+    working_dir: /home/ubuntu/http
+    service_user: ubuntu
+
+  tasks:
+    - name: Create HTTP directory
+      ansible.builtin.file:
+        path: "{{ working_dir }}"
+        state: "directory"
+    - name: Create welcome file to serve
+      copy:
+        dest: "{{ working_dir }}/index.html"
+        content: 'Hello World!'
+    - name: Create systemd service file
+      become: true
+      copy:
+        dest: /etc/systemd/systemd/python_simple_server.service
+        mode: '0644'
+        content: |
+          [Unit]
+          Description=Simple Python HTTP Server
+          after=network.target
+          
+          [Service]
+          Type=simple
+          User={{ service_user }}
+          WorkingDirectory={{ working_dir }}
+          ExecStart=/usr/bin/python3 -m http.server
+          Restart=always
+          RestartSec=5
+          
+          [Install]
+          WantedBy=multi-user.target
+    - name: Reload systemd daemon
+      become: true
+      command: systemctl daemon-reload
+    - name: Enable and start Simple Python HTTP Server
+      systemd:
+        name: python_simple_server
+        enabled: true
+        state: started
