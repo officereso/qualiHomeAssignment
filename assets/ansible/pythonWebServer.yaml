@@ -8,6 +8,9 @@
     service_user: ubuntu
 
   tasks:
+    - name: Wait for host rechable
+      ansible.builtin.wait_for_connection:
+        timeout: 60
     - name: Create HTTP directory
       ansible.builtin.file:
         path: "{{ working_dir }}"
