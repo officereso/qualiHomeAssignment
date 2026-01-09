@@ -1,12 +1,64 @@
 - name: "Install Nginx onto target Ubuntu machine proxy all traffic to {dst-url}"
   hosts: all
+  connection: ssh
+  become: true
+
+  pre_tasks:
+    - name: Ensure temp SSH directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/.ssh_tmp"
+        state: directory
+        mode: '0700'
+      delegate_to: localhost
+      run_once: true
+    - name: Write SSH private key to temporary file
+      ansible.builtin.copy:
+        content: "{{ ssh_private_key_content }}"
+        dest: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
+        mode: '0600'
+      delegate_to: localhost
+      run_once: true
+    - name: Use temporary SSH key
+      ansible.builtin.set_fact:
+        ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
+
   tasks:
+    - name: Wait for system to become reachable
+      wait_for_connection:
+        timeout: 600
     - name: Install Nginx reverse proxy
       ansible.builtin.apt:
         name: nginx
         state: latest
-    - name: Create proxy site
-      copy:
-        dest: "/etc/var/nginx/sites-enabled/site.conf"
+        update_cache: true
+    - name: Create proxy site config
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/site.conf
+        mode: '0644'
         content: |
-          server { listen 80; location / { proxy_pass {{ url }}; }}
+          server {
+            listen 80;
+
+            location / {
+              proxy_pass http://{{ url }};
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            }
+          }
+    - name: Enable proxy site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/site.conf
+        dest: /etc/nginx/sites-enabled/site.conf
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+  post_tasks:
+    - name: Remove temporary ssh private key
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/.ssh_tmp"
+        state: absent
+      delegate_to: localhost
+      run_once: true
