@@ -26,7 +26,7 @@ resource "tls_private_key" "private_key" {
 }
 
 resource "aws_key_pair" "key_pair" {
-	public_key = tls_private_key.private_key.public_key_pem
+	public_key = tls_private_key.private_key.public_key_openssh
 }
 
 resource "aws_instance" "instance" {
