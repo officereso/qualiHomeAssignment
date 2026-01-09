@@ -20,3 +20,8 @@ variable "name" {
 	type = string
 	nullable = true
 }
+
+variable "route_table_id" {
+	type = string
+	nullable = false
+}

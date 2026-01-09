@@ -9,3 +9,7 @@ output "vpc_id" {
 output "vpc_arn" {
 	value = aws_vpc.vpc.arn
 }
+
+output "route_table_id" {
+	value = aws_route_table.public.id
+}
