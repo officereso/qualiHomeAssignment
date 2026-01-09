@@ -11,13 +11,45 @@ provider "aws" {
 	region = var.region
 }
 
+resource "aws_security_group" "ssh" {
+	description = "Allow SSH"
+	vpc_id = var.vpc_id
+
+	ingress {
+		description = "SSH"
+		from_port = 22
+		to_port = 22
+		protocol = "tcp"
+		cidr_blocks = [ "0.0.0.0/0" ]
+	}
+
+	egress {
+		from_port = 0
+		to_port = 0
+		protocol = "-1"
+		cidr_blocks = [ "0.0.0.0/0" ]
+	}
+}
+
 resource "aws_network_interface" "interface" {
 	subnet_id = var.subnet_id
 	private_ips = var.private_ips
+	security_groups = [
+		aws_security_group.ssh.id
+	]
 
 	tags = {
 		Name = var.interface_name
 	}
+}
+
+resource "aws_eip" "public_ip" {
+	domain = "vpc"
+}
+
+resource "aws_eip_association" "eip_association" {
+	allocation_id = aws_eip.public_ip.id
+	network_interface_id = aws_network_interface.interface.id
 }
 
 resource "tls_private_key" "private_key" {
@@ -42,6 +74,4 @@ resource "aws_instance" "instance" {
 		device_index         = 0
 		network_interface_id = aws_network_interface.interface.id
 	}
-
-	associate_public_ip_address = var.associate_public_ip_address
 }

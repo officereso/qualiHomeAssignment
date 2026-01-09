@@ -37,8 +37,8 @@ variable "interface_name" {
 	nullable = true
 }
 
-variable "associate_public_ip_address" {
+variable "vpc_id" {
 	default = false
-	type = bool
+	type = string
 	nullable = false
 }
