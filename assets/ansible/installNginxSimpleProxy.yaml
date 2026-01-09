@@ -14,7 +14,7 @@
       run_once: true
     - name: Write SSH private key to temporary file
       ansible.builtin.copy:
-        content: "{{ ssh_private_key_content }}"
+        content: "{{ ssh_private_key_content | replace(' ', '\n') }}"
         dest: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
         mode: '0600'
       delegate_to: localhost
@@ -22,21 +22,7 @@
     - name: Use temporary SSH key
       ansible.builtin.set_fact:
         ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
-    - name: DEBUG ONLY – print SSH key
-      ansible.builtin.slurp:
-        src: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
-      delegate_to: localhost
-      run_once: true
-      register: key_file
 
-    - name: DEBUG ONLY – show SSH key contents
-      ansible.builtin.debug:
-        msg: "{{ key_file.content | b64decode }}"
-    - name: Show key header and footer
-      ansible.builtin.debug:
-        msg:
-          - "{{ (key_file.content | b64decode).split('\n')[0] }}"
-          - "{{ (key_file.content | b64decode).split('\n')[-2] }}"
   tasks:
     - name: Wait for system to become reachable
       wait_for_connection:
