@@ -9,5 +9,5 @@ done
 
 key="${key% }"
 
-echo "$key" | tr ' ' '\n' >> key
+echo "/tmp/$key" | tr ' ' '\n' >> key
 chmod 0600 key
