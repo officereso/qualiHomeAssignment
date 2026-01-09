@@ -22,13 +22,16 @@
     - name: Use temporary SSH key
       ansible.builtin.set_fact:
         ansible_ssh_private_key_file: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
-    - name: DEBUG ls
-      command: ls --recursive {{ playbook_dir }}
+    - name: DEBUG ONLY – print SSH key
+      ansible.builtin.slurp:
+        src: "{{ playbook_dir }}/.ssh_tmp/temporary_key"
       delegate_to: localhost
-    - name: DEBUG cat
-      command: cat {{ playbook_dir }}/.ssh_tmp/temporary_key
-      delegate_to: localhost
+      run_once: true
+      register: key_file
 
+    - name: DEBUG ONLY – show SSH key contents
+      ansible.builtin.debug:
+        msg: "{{ key_file.content | b64decode }}"
   tasks:
     - name: Wait for system to become reachable
       wait_for_connection:
