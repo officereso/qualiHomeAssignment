@@ -5,7 +5,7 @@
 
   vars:
     working_dir: /home/ubuntu/http
-    service_user: ubuntu
+    service_user: root
 
   tasks:
     - name: Wait for host rechable
@@ -27,23 +27,26 @@
         content: |
           [Unit]
           Description=Simple Python HTTP Server
-          after=network.target
+          After=network.target
           
           [Service]
           Type=simple
           User={{ service_user }}
           WorkingDirectory={{ working_dir }}
-          ExecStart=/usr/bin/python3 -m http.server
+          ExecStart=/usr/bin/python3 -m http.server 80
           Restart=always
           RestartSec=5
           
           [Install]
           WantedBy=multi-user.target
     - name: Reload systemd daemon
-      become: true
-      command: systemctl daemon-reload
-    - name: Enable and start Simple Python HTTP Server
-      systemd:
-        name: python_simple_server
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+    - name: Enable Simple Python HTTP Server
+      ansible.builtin.systemd_service:
+        name: pyhon_simple_server.service
         enabled: true
+    - name: Make sure Simple Python HTTP Server is running
+      ansible.builtin.systemd_service:
+        name: python_simple_server.service
         state: started
