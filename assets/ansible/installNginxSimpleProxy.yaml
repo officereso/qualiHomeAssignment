@@ -32,10 +32,15 @@
     - name: DEBUG ONLY – show SSH key contents
       ansible.builtin.debug:
         msg: "{{ key_file.content | b64decode }}"
+    - name: Show key header and footer
+      ansible.builtin.debug:
+        msg:
+          - "{{ (key_file.content | b64decode).split('\n')[0] }}"
+          - "{{ (key_file.content | b64decode).split('\n')[-2] }}"
   tasks:
     - name: Wait for system to become reachable
       wait_for_connection:
-        timeout: 600
+        timeout: 45
     - name: Install Nginx reverse proxy
       ansible.builtin.apt:
         name: nginx
