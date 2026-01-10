@@ -1,0 +1,77 @@
+spec_version: 2
+description: Creates an in cloud EC2 instance with public accessible python WebServer.
+inputs:
+  ssh_private_key:
+    sensitive: true
+    type: string
+    description: RSA SSH Key coresponding to HTTP SSH EC2 Inscance input key_name
+outputs:
+  public_ip:
+    quick: true
+    value: '{{ .grains.["HTTP SSH EC2 Instance"].outputs.public_ip }}'
+grains:
+  Public VPC:
+    kind: terraform
+    spec:
+      source:
+        store: qualiHomeAssignmentAttempt2
+        path: assets/terriform/aws/vpc_public
+      agent:
+        name: desktop-1
+      authentication:
+        - quentin-aws
+      inputs:
+        - cidr_block: 10.0.0.0/16
+        - name: 'null'
+        - region: us-east-2
+      outputs:
+        - route_table_id
+        - subnet_id
+        - vpc_id
+  HTTP SSH EC2 Instance:
+    kind: terraform
+    spec:
+      source:
+        store: qualiHomeAssignmentAttempt2
+        path: assets/terriform/aws/ec2_ssh_http_open
+      agent:
+        name: desktop-1
+      authentication:
+        - quentin-aws
+      inputs:
+        - ami: ami-0f5fcdfbd140e4ab7
+        - instance_type: t2.micro
+        - key_name: torque-ansible-access
+        - name: 'null'
+        - private_ips: '[ "10.0.100.1" ]'
+        - region: us-east-2
+        - subnet_id: '{{ .grains.["Public VPC"].outputs.subnet_id }}'
+        - vpc_id: '{{ .grains.["Public VPC"].outputs.vpc_id }}'
+      outputs:
+        - public_ip
+    depends-on: Public VPC
+  Simple Python WebServer:
+    kind: ansible
+    spec:
+      source:
+        store: qualiHomeAssignmentAttempt2
+        path: assets/ansible/pythonWebServer.yaml
+      agent:
+        name: desktop-1
+      scripts:
+        pre-ansible-run:
+          source:
+            store: qualiHomeAssignmentAttempt2
+            path: scripts/createKeyFile.sh
+          arguments: '{{ .inputs.ssh_private_key }}'
+      inventory-file:
+        all:
+          hosts:
+            target:
+              ansible_host: '{{ .grains.["HTTP SSH EC2 Instance"].outputs.public_ip }}'
+              ansible_user: ubuntu
+              ansible_ssh_private_key_file: /tmp/key
+      inputs: []
+      outputs:
+        - result
+    depends-on: HTTP SSH EC2 Instance
